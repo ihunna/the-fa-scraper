@@ -19,17 +19,8 @@ async def main() -> None:
 
         # Initialize Scraper with UK Datacenter Proxy settings
         actor_input = await Actor.get_input() or {}
-        proxy_config_input = actor_input.get('proxyConfiguration')
         
-        # If no proxy provided, default to UK Datacenter
-        if not proxy_config_input:
-            proxy_config_input = {
-                "useApifyProxy": True, 
-                "groups": ["DATACENTER"], 
-                "countryCode": "GB"
-            }
-        
-        scraper: Scraper = Scraper(proxy_config=proxy_config_input)
+        scraper: Scraper = Scraper()
         
         action = actor_input.get('action', 'get-leagues')
         force_refresh = actor_input.get('force_refresh', False)
