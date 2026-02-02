@@ -13,7 +13,8 @@ async def main() -> None:
             try:
                 stored_at = datetime.fromisoformat(stored_obj['timestamp'])
                 # Current UTC time vs stored UTC time
-                return datetime.now(timezone.utc) - stored_at > timedelta(days=7)
+                # return datetime.now(timezone.utc) - stored_at > timedelta(days=7)
+                return False
             except (ValueError, TypeError):
                 return True
 
