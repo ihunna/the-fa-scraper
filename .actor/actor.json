@@ -1,0 +1,24 @@
+{
+  "actorSpecification": 1,
+  "name": "THEFA Comprehensive League and Teams Scraper",
+  "title": "THEFA League and Team Data Scraper",
+  "version": "1.0",
+  "output": "./OUTPUT_SCHEMA.json",
+  "dockerfile": "./Dockerfile",
+  "pricingStrategy": "PAY_PER_EVENT",
+  "options": {
+    "maxCostUsd": 100
+  },
+  "payPerEvent": {
+    "usageEvents": {
+      "actor-start": {
+        "title": "Initial Session Setup",
+        "description": "Charged once per run."
+      },
+      "successful-page": {
+        "title": "Successful Page Scrape",
+        "description": "Charged per page."
+      }
+    }
+  }
+}

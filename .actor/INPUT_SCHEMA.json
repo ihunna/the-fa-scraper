@@ -1,0 +1,22 @@
+{
+    "title": "The FA Leagues Scraper Input",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "action": {
+            "title": "Action",
+            "type": "string",
+            "description": "Select the scraping mode.",
+            "enum": ["get-leagues", "get-teams"],
+            "enumTitles": ["Get Leagues", "Get Teams"],
+            "default": "get-leagues"
+        },
+        "group":{
+            "title": "By group",
+            "type": "string",
+            "description": "Scrape league by group e.g (A), leave empty to scrape all.",
+            "editor": "textfield"
+        }
+    },
+    "required": ["action"]
+}
