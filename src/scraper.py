@@ -50,7 +50,7 @@ class Scraper:
             
         else:
             proxy_cfg = await Actor.create_proxy_configuration(
-                proxy_urls=['http://127.0.0.1:8080']
+                proxy_urls=['http://pcuvlqkouk-res-uk:PC_3TVf5LAKhkG6W8L55@proxy-eu.proxy-cheap.com:5959']
             )
 
         if not proxy_cfg:
@@ -64,7 +64,7 @@ class Scraper:
             proxy_url = await self.get_proxy_url()
             # Actor.log.info(f'Using proxy URL: {proxy_url}')
 
-            async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, follow_redirects=True,verify=False) as client:
+            async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, follow_redirects=True) as client:
                 try:
                     Actor.log.info(f'Getting more details for league {league["id"]}')
                     params = {
@@ -117,7 +117,7 @@ class Scraper:
         proxy_url = await self.get_proxy_url()
         # Actor.log.info(f'Using proxy URL: {proxy_url}')
 
-        async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, follow_redirects=True, verify=False) as client:
+        async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, follow_redirects=True) as client:
             try:
                 url = f'https://fulltime.thefa.com/home/leagues/{group}.html'
                 Actor.log.info(f'Fetching page 1 for group {group}')
@@ -185,7 +185,7 @@ class Scraper:
             division_id = division.get('id')
             division_name = division.get('name')
 
-            async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, follow_redirects=True,verify=False) as client:
+            async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, follow_redirects=True) as client:
                 try:
 
                     params = {
