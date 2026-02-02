@@ -82,3 +82,141 @@ Scrapes comprehensive team lists based on the league structures found.
 
 ```
 
+
+### Example Output
+
+**Leagues**
+```json
+
+[
+  {
+    "id": "418624324",
+    "name": "A&S Interiors Ltd  Devon Football League",
+    "url": "https://fulltime.thefa.com/index.html?league=418624324",
+    "group": "A",
+    "seasons": [
+      {
+        "id": "982860139",
+        "name": "2019-20",
+        "selected": false
+      },
+      {
+        "id": "781824432",
+        "name": "2020-21",
+        "selected": false
+      },
+      {
+        "id": "561675758",
+        "name": "2021-22",
+        "selected": false
+      },
+      {
+        "id": "782914143",
+        "name": "2022-23",
+        "selected": false
+      },
+      {
+        "id": "515848069",
+        "name": "2023-24",
+        "selected": false
+      },
+      {
+        "id": "448065270",
+        "name": "2024-25",
+        "selected": false
+      },
+      {
+        "id": "329660113",
+        "name": "2025-26",
+        "selected": true
+      }
+    ],
+    "divisions": [
+      {
+        "id": "457709114",
+        "name": "Devon Football League",
+        "selected": true
+      }
+    ]
+  },
+  {
+    "id": "798677416",
+    "name": "A1 Football Factory",
+    "url": "https://fulltime.thefa.com/index.html?league=798677416",
+    "group": "A",
+    "seasons": [
+      {
+        "id": "468380042",
+        "name": "New College Enrichment League 2025 26",
+        "selected": false
+      },
+      {
+        "id": "879723696",
+        "name": "Wednesday Night League January 2026",
+        "selected": true
+      }
+    ],
+    "divisions": [
+      {
+        "id": "430036677",
+        "name": "Wednesday Night Premier League",
+        "selected": true
+      }
+    ]
+  }
+]
+
+```
+
+**Teams**
+```json
+
+[
+  {
+    "id": "554240695",
+    "name": "Dinnington Town J.F.C.",
+    "link": "https://fulltime.thefa.com/displayTeam.html?divisionseason=110634580&teamID=554240695",
+    "league_id": "1854955",
+    "league": "Abacus Lighting Central Midlands Alliance League",
+    "division_id": "953857299",
+    "division": "Camper UK Premier Division North",
+    "season_id": "912243998",
+    "season": "2025-26"
+  },
+  {
+    "id": "799175766",
+    "name": "Kinsley Boys F.C.",
+    "link": "https://fulltime.thefa.com/displayTeam.html?divisionseason=110634580&teamID=799175766",
+    "league_id": "1854955",
+    "league": "Abacus Lighting Central Midlands Alliance League",
+    "division_id": "953857299",
+    "division": "Camper UK Premier Division North",
+    "season_id": "912243998",
+    "season": "2025-26"
+  },
+  {
+    "id": "654223555",
+    "name": "Brodsworth Main FC First Team",
+    "link": "https://fulltime.thefa.com/displayTeam.html?divisionseason=110634580&teamID=654223555",
+    "league_id": "1854955",
+    "league": "Abacus Lighting Central Midlands Alliance League",
+    "division_id": "953857299",
+    "division": "Camper UK Premier Division North",
+    "season_id": "912243998",
+    "season": "2025-26"
+  },
+  {
+    "id": "321112407",
+    "name": "Harworth Colliery FC",
+    "link": "https://fulltime.thefa.com/displayTeam.html?divisionseason=110634580&teamID=321112407",
+    "league_id": "1854955",
+    "league": "Abacus Lighting Central Midlands Alliance League",
+    "division_id": "953857299",
+    "division": "Camper UK Premier Division North",
+    "season_id": "912243998",
+    "season": "2025-26"
+  }
+]
+
+```
+
