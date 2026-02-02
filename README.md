@@ -1,68 +1,82 @@
-## Python empty template
+# FA Full-Time League & Team Scraper
 
-<!-- This is an Apify template readme -->
+A high-performance Apify Actor designed to scrape football league structures, seasons, divisions, and team data from [The FA Full-Time](https://fulltime.thefa.com). This Actor utilizes an asynchronous architecture to handle high-volume data extraction with precision and speed.
 
-Start a new [web scraping](https://apify.com/web-scraping) project quickly and easily in Python with our empty project template. It provides a basic structure for the [Actor](https://apify.com/actors) with [Apify SDK](https://docs.apify.com/sdk/python/) and allows you to easily add your own functionality.
+## 🚀 Key Features
 
-## Included features
+* **Asynchronous Architecture**: Leverages `httpx` and `asyncio` for non-blocking I/O, allowing for significantly higher throughput than traditional synchronous scrapers.
+* **Incremental Data Processing**: Uses `asyncio.as_completed` to push results to the Apify Dataset immediately as tasks finish. This ensures real-time progress visibility and prevents data loss in case of timeouts.
+* **Smart Throttling & IP Rotation**: 
+    * **Semaphore Control**: Limits concurrent requests to prevent memory exhaustion and socket errors.
+    * **Fresh Connection Logic**: Initializes a new client per request to ensure unique IP rotation via your proxy provider.
+* **State Persistence**: Stores league lists in the Apify Key-Value store, allowing for a decoupled workflow between league discovery and team extraction.
 
-- **[Apify SDK](https://docs.apify.com/sdk/python/)** for Python - a toolkit for building Apify [Actors](https://apify.com/actors) and scrapers in Python
-- **[Input schema](https://docs.apify.com/platform/actors/development/input-schema)** - define and easily validate a schema for your Actor's input
-- **[Request queue](https://docs.apify.com/sdk/python/docs/concepts/storages#working-with-request-queues)** - queues into which you can put the URLs you want to scrape
-- **[Dataset](https://docs.apify.com/sdk/python/docs/concepts/storages#working-with-datasets)** - store structured data where each object stored has the same attributes
+---
 
-## How it works
+## 🛠️ Usage & Actions
 
-Insert your own code to `async with Actor:` block. You can use the [Apify SDK](https://docs.apify.com/sdk/python/) with any other Python library.
+The Actor operates in two main modes defined by the `action` input:
 
-## Resources
+### 1. get-leagues
+Scrapes the A-Z directory to find all available leagues.
 
-- [Python tutorials in Academy](https://docs.apify.com/academy/python)
-- [Video guide on getting data using Apify API](https://www.youtube.com/watch?v=ViYYDHSBAKM)
-- [Integration with Make, GitHub, Zapier, Google Drive, and other apps](https://apify.com/integrations)
-- A short guide on how to build web scrapers using code templates:
+* **Alphabetical Crawl**: The Actor iterates through every alphabet group (A-Z) to locate league entries.
+* **Deep Metadata Extraction**: For every league found, it automatically drills down to extract associated Season IDs and Division IDs.
+* **Storage**: Data is pushed to the Dataset and simultaneously cached in a Key-Value store named `leagues` under the key `ALL` for use in subsequent runs.
 
-[web scraper template](https://www.youtube.com/watch?v=u-i-Korzf8w)
+### 2. get-teams
+Scrapes comprehensive team lists based on the league structures found.
 
+* **Targeting**: It loads the full list of leagues from the `leagues` KV store or targets a specific `league_id` from your input.
+* **Full Extraction**: It navigates through every league, every season, and every division to capture every team entry available.
+* **Flattened Output**: Unpacks complex nested data into a clean, flat list of team objects for easy analysis.
+* **Real-time Updates**: Data is pushed to your dataset league-by-league as the crawl progresses.
 
-## Getting started
+---
 
-For complete information [see this article](https://docs.apify.com/platform/actors/development#build-actor-locally). To run the Actor use the following command:
+## 📥 Input Configuration
 
-```bash
-apify run
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| **action** | String | Yes | `get-leagues` or `get-teams`. |
+| **group** | String | No | A single letter (A-Z) to limit the search. |
+| **league_id** | String | No | Target a specific league ID for team scraping. |
+| **proxyConfiguration** | Object | Yes | Apify Proxy settings (Residential recommended). |
+
+### Example Input
+
+**Scrape a specific letter group** Use this to find all leagues starting with a specific letter (e.g., "A").
+```json
+
+{
+  "action": "get-leagues",
+  "group": "A"
+}
+
+```
+**Scrape all leagues** Use this to perform a full crawl of the entire A-Z directory.
+```json
+
+{
+  "action": "get-leagues"
+}
 ```
 
-## Deploy to Apify
+**Scrape teams for a specific league** Use this if you already have a League ID and want to jump straight to the team data.
+```json
 
-### Connect Git repository to Apify
+{
+  "action": "get-teams",
+  "league_id": "953857299"
+}
 
-If you've created a Git repository for the project, you can easily connect to Apify:
+```
 
-1. Go to [Actor creation page](https://console.apify.com/actors/new)
-2. Click on **Link Git Repository** button
+**Scrape teams for all cached leagues** Use this to extract teams for every league found during your last get-leagues run.
+```json
+{
+  "action": "get-teams",
+}
 
-### Push project on your local machine to Apify
+```
 
-You can also deploy the project on your local machine to Apify without the need for the Git repository.
-
-1. Log in to Apify. You will need to provide your [Apify API Token](https://console.apify.com/account/integrations) to complete this action.
-
-    ```bash
-    apify login
-    ```
-
-2. Deploy your Actor. This command will deploy and build the Actor on the Apify Platform. You can find your newly created Actor under [Actors -> My Actors](https://console.apify.com/actors?tab=my).
-
-    ```bash
-    apify push
-    ```
-
-## Documentation reference
-
-To learn more about Apify and Actors, take a look at the following resources:
-
-- [Apify SDK for JavaScript documentation](https://docs.apify.com/sdk/js)
-- [Apify SDK for Python documentation](https://docs.apify.com/sdk/python)
-- [Apify Platform documentation](https://docs.apify.com/platform)
-- [Join our developer community on Discord](https://discord.com/invite/jyEM2PRvMU)
