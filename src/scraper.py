@@ -231,7 +231,7 @@ class Scraper:
                                     'division_id': division_id,
                                     'division': division_name,
                                     'season_id': season_id,
-                                    'season': season_name
+                                    'season': f'({season_name})'
                                 })
                     return team_list
                 except Exception as e:
