@@ -1,7 +1,7 @@
 {
   "actorSpecification": 1,
-  "name": "THEFA Comprehensive League and Teams Scraper",
-  "title": "THEFA League and Team Data Scraper",
+  "name": "thefa-leagues-and-teams-scraper",
+  "title": "THEFA Leagues and Teams Data Scraper",
   "version": "1.0",
   "output": "./OUTPUT_SCHEMA.json",
   "dockerfile": "./Dockerfile",

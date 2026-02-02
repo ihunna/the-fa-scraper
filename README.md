@@ -2,6 +2,8 @@
 
 A high-performance Apify Actor designed to scrape football league structures, seasons, divisions, and team data from [The FA Full-Time](https://fulltime.thefa.com). This Actor utilizes an asynchronous architecture to handle high-volume data extraction with precision and speed.
 
+**Go to the apify actor** [APIFY ACTOR](https://apify.com/autosoldier/thefa-leagues-and-teams-scraper) to run it.
+
 ## 🚀 Key Features
 
 * **Asynchronous Architecture**: Leverages `httpx` and `asyncio` for non-blocking I/O, allowing for significantly higher throughput than traditional synchronous scrapers.
