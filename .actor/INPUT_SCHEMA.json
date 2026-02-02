@@ -9,7 +9,7 @@
             "description": "Select whether to map the league directory or scrape specific teams.",
             "default": "get-leagues",
             "enum": ["get-leagues", "get-teams"],
-            "enumTitles": ["Get Leagues (Directory)", "Get Teams (Deep Scrape)"]
+            "enumTitles": ["Get Leagues", "Get Teams"]
         },
         "group": {
             "title": "Alphabetical Group",
