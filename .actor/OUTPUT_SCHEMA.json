@@ -1,0 +1,16 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "THEFA Leagues and Teams Data Scraper",
+  "properties": {
+    "reviewsTable": {
+      "title": "Reviews (Table)",
+      "type": "string",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
+    },
+    "fullJson": {
+      "title": "Full Results",
+      "type": "string",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/OUTPUT"
+    }
+  }
+}
