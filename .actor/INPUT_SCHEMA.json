@@ -3,20 +3,36 @@
     "type": "object",
     "schemaVersion": 1,
     "properties": {
-        "action": {
+   "action": {
             "title": "Action",
             "type": "string",
-            "description": "Select the scraping mode.",
+            "description": "Select whether to map the league directory or scrape specific teams.",
+            "default": "get-leagues",
             "enum": ["get-leagues", "get-teams"],
-            "enumTitles": ["Get Leagues", "Get Teams"],
-            "default": "get-leagues"
+            "enumTitles": ["Get Leagues (Directory)", "Get Teams (Deep Scrape)"]
         },
-        "group":{
-            "title": "By group",
+        "group": {
+            "title": "Alphabetical Group",
             "type": "string",
-            "description": "Scrape league by group e.g (A), leave empty to scrape all.",
+            "description": "The A-Z letter to scrape. Leave empty to scrape all leagues.",
+            "editor": "select",
+            "enum": ["", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"],
+            "default": ""
+        },
+        "league_id": {
+            "title": "League ID",
+            "type": "string",
+            "description": "Required for 'get-teams' if you only want to scrape teams in a specific league, leave empty to scrape across all leagues",
             "editor": "textfield"
+        },
+        "force_refresh": {
+            "title": "Force Refresh",
+            "type": "boolean",
+            "description": "Data is cached for 7 days, enable to get a fresh data.",
+            "default": false,
+            "groupName": "Caching & Efficiency"
         }
+
     },
     "required": ["action"]
 }
