@@ -29,8 +29,7 @@
             "title": "Force Refresh",
             "type": "boolean",
             "description": "Data is cached for 7 days, enable to get a fresh data.",
-            "default": false,
-            "groupName": "Caching & Efficiency"
+            "default": false
         }
 
     },
