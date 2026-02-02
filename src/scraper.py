@@ -46,7 +46,7 @@ class Scraper:
     async def get_proxy_url(self):
         if Actor.get_env().get('is_at_home'):
             proxy_cfg = await Actor.create_proxy_configuration(
-                country_code='GB'
+                proxy_urls=['http://pcuvlqkouk-res-uk:PC_3TVf5LAKhkG6W8L55@proxy-eu.proxy-cheap.com:5959']
                 )
             
         else:
