@@ -8,7 +8,7 @@ async def main() -> None:
     async with Actor:
         # --- Helper: Check Cache Expiry (7 Days) ---
         def is_expired(stored_obj: dict | None) -> bool:
-            if not stored_obj or 'timestamp' not in stored_obj:
+            if not stored_obj or 'timestamp' not in stored_obj or not stored_obj:
                 return True
             try:
                 stored_at = datetime.fromisoformat(stored_obj['timestamp'])
@@ -86,7 +86,7 @@ async def main() -> None:
                 await Actor.fail("No league directory found. Please run 'get-leagues' first.")
                 return
             
-            target_leagues = leagues_data_obj['data']
+            target_leagues = leagues_data_obj['data'] if leagues_data_obj else []
             if league_id:
                 target_leagues = [lg for lg in target_leagues if lg.get('id') == league_id]
 
