@@ -12,7 +12,7 @@
             "enumTitles": ["Get Leagues", "Get Teams"]
         },
         "group": {
-            "title": "Alphabetical Group",
+            "title": "Alphabetical Group (for get-leagues)",
             "type": "string",
             "description": "The A-Z letter to scrape. Leave empty to scrape all leagues.",
             "editor": "select",
@@ -20,7 +20,7 @@
             "default": ""
         },
         "league_id": {
-            "title": "League ID",
+            "title": "League ID (for get-teams)",
             "type": "string",
             "description": "Required for 'get-teams' if you only want to scrape teams in a specific league, leave empty to scrape across all leagues",
             "editor": "textfield"
