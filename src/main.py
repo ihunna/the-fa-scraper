@@ -24,6 +24,9 @@ async def main() -> None:
             async def limited_group_scrape(group_code):
                 async with group_semaphore:
                     return await scraper.get_leagues(group_code)
+                
+
+            all_leagues = []
 
             # 1. Create a list of tasks for each group
             # We strip/upper here so the scraper gets clean strings
@@ -41,6 +44,10 @@ async def main() -> None:
                     
                     # Push data to the Apify dataset immediately
                     await Actor.push_data(leagues)
+
+                    # --- ADDED: Charge for each league scraped ---
+                    for _ in leagues:
+                        await Actor.charge('league-scraped')
                     
                     Actor.log.info(f"Pushed {len(leagues)} leagues to dataset.")
 
@@ -93,6 +100,10 @@ async def main() -> None:
                     # Push to Apify dataset immediately
                     await Actor.push_data(result)
                     all_teams.extend(result)
+
+                    # --- ADDED: Charge for each team scraped ---
+                    for _ in result:
+                        await Actor.charge('team-scraped')
 
 
             await Actor.set_value('OUTPUT', all_teams)
