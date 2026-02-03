@@ -47,12 +47,12 @@ class Scraper:
         if Actor.get_env().get('is_at_home'):
             proxy_url = os.getenv('PROXY_URL')
             proxy_cfg = await Actor.create_proxy_configuration(
-                proxy_urls=proxy_url
+                proxy_urls=[proxy_url]
             )
             
         else:
             proxy_cfg = await Actor.create_proxy_configuration(
-                proxy_urls=proxy_url
+                proxy_urls=[proxy_url]
             )
 
         if not proxy_cfg:
