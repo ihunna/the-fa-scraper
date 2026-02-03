@@ -1,6 +1,6 @@
 from apify import Actor
 from bs4 import BeautifulSoup
-import json, httpx, random, asyncio
+import json, httpx, random, asyncio,os
 
 class Scraper:
     def __init__(self, max_concurrent=10):
@@ -45,13 +45,14 @@ class Scraper:
 
     async def get_proxy_url(self):
         if Actor.get_env().get('is_at_home'):
+            proxy_url = os.getenv('PROXY_URL')
             proxy_cfg = await Actor.create_proxy_configuration(
-                proxy_urls=['http://pcuvlqkouk-res-uk:PC_3TVf5LAKhkG6W8L55@proxy-eu.proxy-cheap.com:5959']
-                )
+                proxy_urls=proxy_url
+            )
             
         else:
             proxy_cfg = await Actor.create_proxy_configuration(
-                proxy_urls=['http://pcuvlqkouk-res-uk:PC_3TVf5LAKhkG6W8L55@proxy-eu.proxy-cheap.com:5959']
+                proxy_urls=proxy_url
             )
 
         if not proxy_cfg:
