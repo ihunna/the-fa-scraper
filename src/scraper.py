@@ -44,8 +44,8 @@ class Scraper:
         }
 
     async def get_proxy_url(self):
+        proxy_url = os.getenv('PROXY_URL')
         if Actor.get_env().get('is_at_home'):
-            proxy_url = os.getenv('PROXY_URL')
             proxy_cfg = await Actor.create_proxy_configuration(
                 proxy_urls=[proxy_url]
             )
@@ -209,9 +209,13 @@ class Scraper:
                     
                     soup = BeautifulSoup(response.text, 'html.parser')
                     
+                    if 'This league table is hidden' in soup.select_one('.tab-1').text:
+                        Actor.log.info(f'[WARNING] No teams data for league {league_id}, division {division_id}')
+                        return None
+                    
                     table = soup.select_one('.tab-1 table')
                     if 'Team' not in table.select_one('thead').text:
-                        print(f'No teams data for league {league_id}, division {division_id}')
+                        Actor.log.info(f'[WARNING] No teams data for league {league_id}, division {division_id}')
                         return None
                     
                     team_list = []
@@ -234,6 +238,7 @@ class Scraper:
                                     'season_id': season_id,
                                     'season': season_name
                                 })
+                        Actor.log.info(f'Fetched {len(team_list)} teams for league {league_id}, division {division_id}')
                     return team_list
                 except Exception as e:
                     print(f'Error getting teams for league {league_id}, division {division_id}: {e}')
