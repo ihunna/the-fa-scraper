@@ -194,7 +194,7 @@ class Scraper:
                 Actor.log.error(f"💥 Error scraping division {division['id']}: {repr(e)}")
                 return None
 
-    async def get_teams(self, league: dict, batch_size: int = 20) -> list[dict]:
+    async def get_teams(self, league: dict, batch_size: int = 40) -> list[dict]:
         divisions = league.get('divisions', [])
         seasons = league.get('seasons', [])
         
