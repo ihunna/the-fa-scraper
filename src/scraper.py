@@ -1,12 +1,16 @@
 from apify import Actor
 from bs4 import BeautifulSoup
-import json, httpx, random, asyncio,os
+import json, httpx, random, asyncio, os, hashlib
+from datetime import datetime
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Scraper:
     def __init__(self, max_concurrent=10):
         self.semaphore = asyncio.Semaphore(max_concurrent)
 
-         # Define realistic profiles
         profiles = [
             {
                 "os": "Windows", 
@@ -22,248 +26,186 @@ class Scraper:
             }
         ]
         profile = random.choice(profiles)
-
-        # Rotate Chrome versions (staying within the latest stable ranges)
-        major_ver = random.randint(140, 142)
+        major_ver = random.randint(120, 122)
         build_ver = f"{major_ver}.0.{random.randint(6000, 7000)}.{random.randint(100, 200)}"
 
         self.headers = {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
             'Cache-Control': 'max-age=0',
-            'Connection': 'keep-alive',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'cross-site',
-            'Sec-Fetch-User': '?1',
-            'Upgrade-Insecure-Requests': '1',
             'User-Agent': f'{profile["ua_base"]} AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{build_ver} Safari/537.36',
             'sec-ch-ua': f'"Chromium";v="{major_ver}", "Google Chrome";v="{major_ver}", "Not_A Brand";v="99"',
-            'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': profile["ch_platform"],
+            'Upgrade-Insecure-Requests': '1',
         }
 
-    async def get_proxy_url(self):
-        proxy_url = os.getenv('PROXY_URL')
-        if Actor.get_env().get('is_at_home'):
-            proxy_cfg = await Actor.create_proxy_configuration(
-                proxy_urls=[proxy_url]
-            )
-            
-        else:
-            proxy_cfg = await Actor.create_proxy_configuration(
-                proxy_urls=[proxy_url]
-            )
-
+    async def get_proxy_url(self, session_id: str = None):
+        proxy_url_env = os.getenv('PROXY_URL')
+        proxy_cfg = await Actor.create_proxy_configuration(proxy_urls=[proxy_url_env])
+        
         if not proxy_cfg:
             raise RuntimeError('No proxy configuration available.')
+
+        return await proxy_cfg.new_url(session_id=session_id) if session_id else await proxy_cfg.new_url()
+
+    async def process_league_batch(self, leagues_batch: list, group: str):
+        batch_id = hashlib.md5(str([lg['id'] for lg in leagues_batch]).encode()).hexdigest()[:8]
+        session_name = f"batch_leagues_{batch_id}"
+        proxy_url = await self.get_proxy_url(session_id=session_name)
         
-        return await proxy_cfg.new_url()
-    
-
-    async def get_league_details(self, league:dict):
-        async with self.semaphore:
-            proxy_url = await self.get_proxy_url()
-            # Actor.log.info(f'Using proxy URL: {proxy_url}')
-
-            async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, follow_redirects=True) as client:
-                try:
-                    Actor.log.info(f'Getting more details for league {league["id"]}')
-                    params = {
-                        'league': league['id'],
-                    }
-                    response = await client.get(
-                        'https://fulltime.thefa.com/index.html',
-                        params=params,
-                        timeout=60.0
-                    )
-
-                    if response.status_code != 200: 
-                        print(f'Error getting league details for league {league['id']}: {response.text}')
-                        return league
-                    
-                    soup = BeautifulSoup(response.text, 'html.parser')
-
-                    # Get all seasons
-                    season_select = soup.select_one('#form1_selectedSeason')
-                    all_seasons = []
-                    for option in season_select.find_all('option'):
-                        all_seasons.append({
-                            'id': option['value'],
-                            'name': option.text.strip(),
-                            'selected': 'selected' in option.attrs
-                        })
-
-                    # Get all divisions
-                    division_select = soup.select_one('#form1_selectedDivision')
-                    all_divisions = []
-                    for option in division_select.find_all('option'):
-                        all_divisions.append({
-                            'id': option['value'],
-                            'name': option.text.strip(),
-                            'selected': 'selected' in option.attrs
-                        })
-
-
-                    league.update({
-                        "seasons": all_seasons,
-                        "divisions": all_divisions
-                    })
-
-                    return league
-                except Exception as e:
-                    print(f'Error getting league details for league {league["id"]}: {e}')
-                    return league
-
-    async def get_leagues(self, group: str) -> list[dict]:
-        proxy_url = await self.get_proxy_url()
-        # Actor.log.info(f'Using proxy URL: {proxy_url}')
-
-        async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, follow_redirects=True) as client:
-            try:
-                url = f'https://fulltime.thefa.com/home/leagues/{group}.html'
-                Actor.log.info(f'Fetching page 1 for group {group}')
-
-                response = await client.get(url, timeout=60.0)
-                if response.status_code == 200:
-                    soup = BeautifulSoup(response.text, 'html.parser')
-                    league_links = soup.select('div.search-results div.results-container')
-
-                    more_pages = soup.select_one('div.paging-container ul')
-                    more_pages = more_pages.find_all('li') if more_pages else []
-
-                    if more_pages:
-                        for page in more_pages:
-                            page = page.find('a').text.strip()
-                            if page.isdigit() and int(page) > 1:
-                                Actor.log.info(f'Fetching next page {page} for group {group}')
-                            
-                                response = await client.get(
-                                    f'https://fulltime.thefa.com/home/leagues/{group}/{page}.html', 
-                                        
-                                )
-
-                                if response.status_code != 200:
-                                    Actor.log.warning(f'Failed to fetch page {page} for group {group}')
-                                    continue
-
-                                soup = BeautifulSoup(response.text, 'html.parser')
-                                league_links.extend(soup.select('div.search-results div.results-container'))
-
-                    leagues = []
-                    for container in league_links:
-                        for link in container.select('a'):
-                            league_name = link.text.strip()
-                            league_url = link['href']
-                            league_id = league_url.split('=')[-1]
-                            leagues.append({
-                                'id': league_id,
-                                'name': league_name,
-                                'url': f'https://fulltime.thefa.com{league_url}',
-                                'group': group
-                            })
-
-                    # Launch all requests at once
-                    tasks = [self.get_league_details(lg) for lg in leagues]
-                    
-                    # This is where the magic happens
-                    updated_leagues = await asyncio.gather(*tasks)
-
-                    return updated_leagues
-
-                print(f"[ERROR] THEFA returned status {response.status_code}")
-            
-            except Exception as e:
-                print(f"[ERROR] Request failed: {e}")
-        return None
-    
-    async def get_teams_by_division(self,league_id:str, league_name:str, season:dict, division:dict):
-         async with self.semaphore:
-            proxy_url = await self.get_proxy_url()
-            # Actor.log.info(f'Using proxy URL: {proxy_url}')
-
-            season_id = season.get('id')
-            season_name = season.get('name')
-            division_id = division.get('id')
-            division_name = division.get('name')
-
-            async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, follow_redirects=True) as client:
-                try:
-
-                    params = {
-                        'selectedSeason': season_id,
-                        'selectedFixtureGroupAgeGroup': '0',
-                        'selectedDivision': division_id,
-                        'selectedCompetition': '0',
-                    }
-
-                    response = await client.get(
-                        'https://fulltime.thefa.com/table.html',
-                        params=params,
-                        timeout=60.0
-                    )
-
-                    if response.status_code != 200: 
-                        print(f'Error getting teams for league {league_id}, division {division_id}: {e}')
-                        return None
-                    
-                    soup = BeautifulSoup(response.text, 'html.parser')
-                    
-                    if 'This league table is hidden' in soup.select_one('.tab-1').text:
-                        Actor.log.info(f'[WARNING] No teams data for league {league_id}, division {division_id}')
-                        return None
-                    
-                    table = soup.select_one('.tab-1 table')
-                    if 'Team' not in table.select_one('thead').text:
-                        Actor.log.info(f'[WARNING] No teams data for league {league_id}, division {division_id}')
-                        return None
-                    
-                    team_list = []
-                    teams = table.select('tbody tr td[class="left"] a')
-                    if teams:
-                        for team in teams:
-                            if team:
-                                team_name = team.text.strip()
-                                team_link = team['href']
-                                team_id = team_link.split('teamID=')[-1]
-
-                                team_list.append({
-                                    'id': team_id,
-                                    'name': team_name,
-                                    'link': f'https://fulltime.thefa.com{team_link}',
-                                    'league_id': league_id,
-                                    'league': league_name,
-                                    'division_id': division_id,
-                                    'division': division_name,
-                                    'season_id': season_id,
-                                    'season': season_name
-                                })
-                        Actor.log.info(f'Fetched {len(team_list)} teams for league {league_id}, division {division_id}')
-                    return team_list
-                except Exception as e:
-                    print(f'Error getting teams for league {league_id}, division {division_id}: {e}')
-                    return None
-
-    async def get_teams(self, league:dict) -> list[dict]:
-        try:
-            divisions = league.get('divisions')
-            selected_season = [season for season in league.get('seasons') if season.get('selected')][-1]
-
-            league_id = league.get('id')
-            league_name = league.get('name')
-
-            teams_list = []
-
-            # Launch all requests at once
-            tasks = [self.get_teams_by_division(league_id,league_name,selected_season,division) for division in divisions]
-            
-            # This is where the magic happens
+        Actor.log.info(f"🚀 Starting League Batch [{batch_id}] | Size: {len(leagues_batch)} | Session: {session_name}")
+        
+        async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, http2=True, follow_redirects=True) as client:
+            tasks = [self.get_league_details(client, lg) for lg in leagues_batch]
             results = await asyncio.gather(*tasks)
-            for teams in results:
-                if teams:
-                    teams_list.extend(teams)
+            Actor.log.info(f"✅ Finished League Batch [{batch_id}]")
+            return results
 
-            return teams_list
-            
-        except Exception as e:
-            print(f"[ERROR] Could not get teams for league {league.get('id')}: {e}")
+    async def get_league_details(self, client: httpx.AsyncClient, league: dict):
+        async with self.semaphore:
+            try:
+                Actor.log.info(f"🔍 Fetching details for League: {league.get('name')} ({league.get('id')})")
+                response = await client.get(
+                    'https://fulltime.thefa.com/index.html',
+                    params={'league': league['id']},
+                    timeout=30.0
+                )
+                if response.status_code != 200: 
+                    Actor.log.error(f"❌ Failed to get details for {league['id']} - Status: {response.status_code}")
+                    return league
+                
+                soup = BeautifulSoup(response.text, 'lxml')
+                seasons = [{'id': o['value'], 'name': o.text.strip(), 'selected': 'selected' in o.attrs} for o in soup.select('#form1_selectedSeason option')]
+                divisions = [{'id': o['value'], 'name': o.text.strip(), 'selected': 'selected' in o.attrs} for o in soup.select('#form1_selectedDivision option')]
+                
+                league.update({"seasons": seasons, "divisions": divisions})
+                Actor.log.info(f"📊 Found {len(seasons)} seasons and {len(divisions)} divisions for {league.get('name')}")
+                return league
+            except Exception as e:
+                Actor.log.error(f"💥 Error in league details {league['id']}: {repr(e)}")
+                return league
+
+    async def get_leagues(self, group: str, batch_size: int = 20) -> list[dict]:
+        """Scrapes league directory including pagination, then processes details in batches."""
+        proxy_url = await self.get_proxy_url(session_id=f"dir_{group}")
+        Actor.log.info(f"📂 Scraping League Directory for Group: {group}")
+        
+        async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, http2=True) as client:
+            try:
+                # 1. Fetch the first page
+                url = f'https://fulltime.thefa.com/home/leagues/{group}.html'
+                res = await client.get(url, timeout=30.0)
+                if res.status_code != 200: return []
+                
+                soup = BeautifulSoup(res.text, 'lxml')
+                # Start with the containers from page 1
+                containers = soup.select('div.search-results div.results-container')
+                
+                # --- Pagination Logic Restored ---
+                paging_ul = soup.select_one('div.paging-container ul')
+                more_pages = paging_ul.find_all('li') if paging_ul else []
+
+                if more_pages:
+                    for li in more_pages:
+                        link_tag = li.find('a')
+                        if not link_tag: continue
+                        
+                        page_num = link_tag.text.strip()
+                        if page_num.isdigit() and int(page_num) > 1:
+                            Actor.log.info(f'📄 Fetching next page {page_num} for group {group}')
+                            
+                            p_res = await client.get(
+                                f'https://fulltime.thefa.com/home/leagues/{group}/{page_num}.html',
+                                timeout=30.0
+                            )
+
+                            if p_res.status_code != 200:
+                                Actor.log.warning(f'⚠️ Failed to fetch page {page_num} for group {group}')
+                                continue
+
+                            p_soup = BeautifulSoup(p_res.text, 'lxml')
+                            containers.extend(p_soup.select('div.search-results div.results-container'))
+                # --- End Pagination Logic ---
+
+                # Extract league IDs and Names
+                leagues = []
+                for container in containers:
+                    for link in container.select('a'):
+                        leagues.append({
+                            'id': link['href'].split('=')[-1], 
+                            'name': link.text.strip(), 
+                            'group': group
+                        })
+
+                Actor.log.info(f"💡 Found {len(leagues)} total leagues in Group {group}. Processing details in IP-batches...")
+
+                # 2. Process league details (seasons/divisions) in batches
+                all_updated = []
+                for i in range(0, len(leagues), batch_size):
+                    batch = leagues[i : i + batch_size]
+                    all_updated.extend(await self.process_league_batch(batch, group))
+                
+                return all_updated
+
+            except Exception as e:
+                Actor.log.error(f"💥 Group {group} overall failure: {repr(e)}")
+                return []
+
+    async def process_division_batch(self, division_batch: list, league_id: str, league_name: str, season: dict):
+        batch_id = hashlib.md5(str([d['id'] for d in division_batch]).encode()).hexdigest()[:8]
+        session_name = f"batch_teams_{batch_id}"
+
+        proxy_url = await self.get_proxy_url(session_id=session_name)
+        Actor.log.info(f"📦 Starting Division Batch [{batch_id}] for League: {league_name} | Size: {len(division_batch)}")
+        
+        async with httpx.AsyncClient(proxy=proxy_url, headers=self.headers, http2=True) as client:
+            tasks = [self.get_teams_by_division(client, league_id, league_name, season, div) for div in division_batch]
+            results = await asyncio.gather(*tasks)
+            flattened = [team for sublist in results if sublist for team in sublist]
+            Actor.log.info(f"✅ Finished Division Batch [{batch_id}] | Total Teams Found: {len(flattened)}")
+            return flattened
+
+    async def get_teams_by_division(self, client: httpx.AsyncClient, league_id: str, league_name: str, season: dict, division: dict):
+        async with self.semaphore:
+            try:
+                Actor.log.info(f"⚽ Scraping Teams: {league_name} > {division['name']}")
+
+                params = {'selectedSeason': season['id'], 'selectedDivision': division['id']}
+                res = await client.get('https://fulltime.thefa.com/table.html', params=params, timeout=30.0)
+                # Actor.log.info(res.status_code)
+
+                if res.status_code != 200: 
+                    Actor.log.error(f"❌ Failed teams for {division['name']} - Status: {res.status_code}")
+                    return None
+                
+                soup = BeautifulSoup(res.text, 'lxml')
+                teams = soup.select('.tab-1 table tbody tr td.left a')
+                
+                parsed_teams = [{
+                    'id': t['href'].split('teamID=')[-1], 
+                    'name': t.text.strip(), 
+                    'league_id': league_id, 
+                    'division': division['name']
+                } for t in teams]
+                
+                Actor.log.info(f"✔️ Parsed {len(parsed_teams)} teams from {division['name']}")
+                return parsed_teams
+            except Exception as e:
+                Actor.log.error(f"💥 Error scraping division {division['id']}: {repr(e)}")
+                return None
+
+    async def get_teams(self, league: dict, batch_size: int = 20) -> list[dict]:
+        divisions = league.get('divisions', [])
+        season = [s for s in league.get('seasons', []) if s.get('selected')][-1]
+        
+        Actor.log.info(f"🛠️ Processing League: {league['name']} | Total Divisions: {len(divisions)}")
+        
+        all_teams = []
+        for i in range(0, len(divisions), batch_size):
+            batch = divisions[i : i + batch_size]
+            all_teams.extend(await self.process_division_batch(batch, league['id'], league['name'], season))
+        
+        Actor.log.info(f"🏁 Completed League: {league['name']} | Total Teams Gathered: {len(all_teams)}")
+        return all_teams
+    
+

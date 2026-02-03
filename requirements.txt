@@ -14,11 +14,15 @@ crawlee==1.3.1
 cryptography==46.0.4
 filelock==3.20.3
 h11==0.16.0
+h2==4.3.0
+hpack==4.1.0
 httpcore==1.0.9
 httpx==0.28.1
+hyperframe==6.1.0
 idna==3.11
 impit==0.9.3
 lazy-object-proxy==1.12.0
+lxml==6.0.2
 more-itertools==10.8.0
 multidict==6.7.1
 packaging==26.0

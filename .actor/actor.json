@@ -7,18 +7,6 @@
   "dockerfile": "./Dockerfile",
   "pricingStrategy": "PAY_PER_EVENT",
   "options": {
-    "maxCostUsd": 100
-  },
-  "payPerEvent": {
-    "usageEvents": {
-      "actor-start": {
-        "title": "Initial Session Setup",
-        "description": "Charged once per run."
-      },
-      "successful-page": {
-        "title": "Successful Page Scrape",
-        "description": "Charged per page."
-      }
-    }
+    "maxCostUsd": 200
   }
 }
