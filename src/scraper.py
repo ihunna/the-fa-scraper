@@ -180,7 +180,7 @@ class Scraper:
     async def get_teams_by_division(self,league_id:str, league_name:str, season:dict, division:dict):
          async with self.semaphore:
             proxy_url = await self.get_proxy_url()
-            Actor.log.info(f'Using proxy URL: {proxy_url}')
+            # Actor.log.info(f'Using proxy URL: {proxy_url}')
 
             season_id = season.get('id')
             season_name = season.get('name')
