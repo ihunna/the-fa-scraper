@@ -48,7 +48,7 @@ async def main() -> None:
                 else:
                     groups = [input_group]
 
-                group_semaphore = asyncio.Semaphore(5)
+                group_semaphore = asyncio.Semaphore(10)
                 async def limited_group_scrape(group_code):
                     async with group_semaphore:
                         return await scraper.get_leagues(group_code)
@@ -105,7 +105,7 @@ async def main() -> None:
                 await Actor.push_data(all_teams)
             else:
                 Actor.log.info(f"Teams for {team_cache_key} expired or missing. Scraping...")
-                league_semaphore = asyncio.Semaphore(10)
+                league_semaphore = asyncio.Semaphore(20)
                 async def limited_league_scrape(league):
                     async with league_semaphore:
                         return await scraper.get_teams(league)
