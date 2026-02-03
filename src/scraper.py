@@ -196,7 +196,25 @@ class Scraper:
 
     async def get_teams(self, league: dict, batch_size: int = 20) -> list[dict]:
         divisions = league.get('divisions', [])
-        season = [s for s in league.get('seasons', []) if s.get('selected')][-1]
+        seasons = league.get('seasons', [])
+        
+        # --- DEFENSIVE CHECK START ---
+        if not seasons:
+            Actor.log.warning(f"⚠️ Skipping league {league.get('name')} ({league.get('id')}): No seasons found.")
+            return []
+            
+        selected_seasons = [s for s in seasons if s.get('selected')]
+        if not selected_seasons:
+            # Fallback: if none are marked 'selected', take the first one available
+            Actor.log.info(f"ℹ️ No 'selected' season for {league.get('name')}, defaulting to latest.")
+            season = seasons[-1] 
+        else:
+            season = selected_seasons[-1]
+        # --- DEFENSIVE CHECK END ---
+        
+        if not divisions:
+            Actor.log.info(f"ℹ️ No divisions found for league {league.get('name')}. Skipping teams.")
+            return []
         
         Actor.log.info(f"🛠️ Processing League: {league['name']} | Total Divisions: {len(divisions)}")
         
@@ -207,5 +225,3 @@ class Scraper:
         
         Actor.log.info(f"🏁 Completed League: {league['name']} | Total Teams Gathered: {len(all_teams)}")
         return all_teams
-    
-
