@@ -17,8 +17,9 @@
             "type": "string",
             "description": "The A-Z letter to scrape. Leave empty to scrape all leagues.",
             "editor": "select",
-            "enum": ["", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"],
-            "default": "A"
+            "enum": ["ALL", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"],
+            "default": "A",
+            "prefill": "A"
         },
         "league_id": {
             "title": "League ID (for get-teams)",
